@@ -1,0 +1,79 @@
+
+
+
+
+exports.run = async (client, message, args) => {
+  const Discord = require('discord.js');
+    try {
+        const missing = message.channel.permissionsFor(message.guild.me).missing('MANAGE_EMOJIS');
+        if (missing.includes('MANAGE_EMOJIS')) { 
+            message.channel.send(new Discord.MessageEmbed().setDescription(` I can't \`manage emojis\`!`).setAuthor(`${message.author.tag}`, `${message.author.avatarURL({dynamic:true})}`).setColor('RED'))
+        } else if (!message.member.permissions.has('MANAGE_EMOJIS')) {
+            message.channel.send(new Discord.MessageEmbed().setDescription(` **You need the \`manage emojis\` permission for use this command!**`).setAuthor(`${message.author.tag}`, `${message.author.avatarURL({dynamic:true})}`).setColor('RED'))
+        } else {
+            if (message.content.includes('https://')||message.content.includes('http://')) {
+                const URL = args[0];
+                message.guild.emojis.create(URL, args[1]).then(emoji => {
+                    message.channel.send(`${args[1]} is uploaded!`)
+                }).catch(err => {
+                    if (err == `DiscordAPIError: Invalid Form Body
+image: File cannot be larger than 256.0 kb.`) {
+                        message.channel.send(new Discord.MessageEmbed().setDescription(` This file is very big! Must be max 256kb.`).setColor('RED').setAuthor(`${message.author.tag}`, `${message.author.avatarURL({dynamic:true})}`))
+                    }
+                })
+            } else if (message.content.includes(':')) {
+                if (!args[0]) {
+                    return message.channel.send("Please enter emoji or url!");
+                } else if (!args[1]) {
+                    const emoji = Discord.Util.parseEmoji(args[0]);
+                    if (emoji.animated === true) {
+                        let ec = message.guild.emojis.cache.size;
+                        let en = `emoji_${ec+1}`
+                        const URL = `https://cdn.discordapp.com/emojis/${emoji.id}.gif?v=1`;
+                        message.guild.emojis.create(URL, en).then(emoji => {
+                            message.channel.send(`${en} is uploaded!`)
+                        })
+                    } else {
+                        const URL = `https://cdn.discordapp.com/emojis/${emoji.id}.png?v=1`;
+                        let ec = message.guild.emojis.cache.size;
+                        let en = `emoji_${ec+1}`
+                        message.guild.emojis.create(URL, en).then(emoji => {
+                            message.channel.send(`${en} is uploaded!`)
+                        })
+                    }
+                } else {
+                    const emoji = Discord.Util.parseEmoji(args[0]);
+                    if (emoji.animated === true) {
+                        const URL = `https://cdn.discordapp.com/emojis/${emoji.id}.gif?v=1`;
+                        message.guild.emojis.create(URL, args[1]).then(emoji => {
+                            message.channel.send(`${args[1]} is uploaded!`)
+                        })
+                    } else {
+                        const URL = `https://cdn.discordapp.com/emojis/${emoji.id}.png?v=1`;
+                        message.guild.emojis.create(URL, args[1]).then(emoji => {
+                            message.channel.send(`${args[1]} is uploaded!`)
+                        })
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        message.channel.send(`\`\`\`${err}\`\`\``)
+        if (err.message === "Error") {
+            message.reply("I can't find this emoji!");
+        }
+    }
+}
+
+exports.conf = {
+    enabled: true,
+    guildOnly: false,
+    aliases: [],
+    permLevel: 0
+}
+
+exports.help = {
+    name: 'addemoji',
+    description: '',
+    usage: 'addemoji'
+}
